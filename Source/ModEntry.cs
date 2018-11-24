@@ -17,21 +17,32 @@ namespace SVBDP
         private static bool isRunning = false;
         private static int discordPipe = -1;
 
+        // Current Game Data
+        private int day;
+        private int year;
+        private string time;
+        private string season;
+        private DayOfWeek dayOfWeek;
+
         private static RichPresence presence = new RichPresence()
         {
-            Details = "Loading...",
+            Details = "Selecting...",
             State = "Main Menu",
             Assets = new Assets()
             {
                 LargeImageKey = "default",
-                LargeImageText = "In Main Menu",
-                SmallImageKey = "default"
-            }
+                LargeImageText = "In Main Menu"
+            },
+            Timestamps = Timestamps.Now
         };
 
         public override void Entry(IModHelper helper)
         {
             Monitor.Log("Game has launched!");
+            
+            helper.Events.GameLoop.DayStarted += AfterStart;
+
+            // RPC Client
             Thread thread = new Thread(() => ConnectRPC());
             thread.Start();
         }
@@ -51,20 +62,22 @@ namespace SVBDP
                 RpcLoop();
             }
         }
-
-        private void onReady(object sender, ReadyMessage args)
+       
+        private void AfterStart(object sender, EventArgs e)
         {
-            Monitor.Log($"Connected to RPC Client, Version : {args.Version}");
-        }
+            Monitor.Log("Save Event!");
 
-        private void onClose(object sender, CloseMessage args)
-        {
-            Monitor.Log($"Disconnected from the RPC Client, Error : {args.Reason}");
-        }
+            Monitor.Log("Updating game data");
 
-        private void onError(object sender, ErrorMessage args)
-        {
-            Monitor.Log($"Error occurd within discord. ({args.Message}) ({args.Code})");
+            presence.State = $"Day : {SDate.Now().DayOfWeek}, The {SDate.Now().Day}";
+            presence.Details = $"Season : {SDate.Now().Season} | Year : {SDate.Now().Year}";
+            presence.Assets = new Assets
+            {
+                LargeImageKey = "default",
+                LargeImageText = "In Game"
+            };
+
+            client.SetPresence(presence);
         }
 
         private void RpcLoop()
@@ -79,6 +92,21 @@ namespace SVBDP
             }
 
             client.Dispose();
+        }
+
+        public void onReady(object sender, ReadyMessage args)
+        {
+            Monitor.Log($"Connected to RPC Client, Version : {args.Version}");
+        }
+
+        public void onClose(object sender, CloseMessage args)
+        {
+            Monitor.Log($"Disconnected from the RPC Client, Error : {args.Reason}");
+        }
+
+        public void onError(object sender, ErrorMessage args)
+        {
+            Monitor.Log($"Error occurd within discord. ({args.Message}) ({args.Code})");
         }
     }
 }
