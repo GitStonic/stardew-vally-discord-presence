@@ -1,0 +1,10 @@
+{
+	"Name": "Stadew RichPresense",
+	"Author": "Stonic",
+	"Version": "0.1.2",
+	"Description": "RichPresense for StardewValley",
+	"UniqueID": "stonic.stardew_rpc",
+	"EntryDll": "stardew-richpresence.dll",
+	"MinimumApiVersion": "2.9",
+	"UpdateKeys": []
+}
